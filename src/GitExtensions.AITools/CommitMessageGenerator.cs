@@ -46,18 +46,61 @@ internal sealed partial class CommitMessageGenerator
         - Do NOT start with "Here is", "Sure", or any conversational text.
         """;
 
+    public const string DefaultSystemPromptRus = """"
+        Ты — генератор сообщений коммитов. Получив git diff, создай ТОЛЬКО текст сообщения коммита — ничего больше.
+                
+        ФОРМАТ:
+        - <тип>[!]: <описание> — максимум 72 символа, изъявительное наклонение.
+        - Критичные изменения: добавь ! перед :, если изменение вносит несовместимые изменения в API или поведение. При желании добавь нижний колонтитул КРИТИЧНЫЕ ИЗМЕНЕНИЯ: <подробности> для пояснения.
+        - Тело: добавь пустую строку и короткое тело ТОЛЬКО когда diff затрагивает несколько файлов или причина не очевидна из темы. Держи тело не более 3 строк.
+        - Нижние колонтитулы: ты можешь добавлять колонтитулы, такие как КРИТИЧНЫЕ ИЗМЕНЕНИЯ, Исправления, Ссылки или Закрыто после тела (отделенные пустой строкой). НЕ добавляй git трейлеры (Co-Authored-By, Signed-off-by и т.д.).
+        
+        ПРИМЕРЫ:
+        ---
+        fix: устранена обработка просроченных токенов при обновлении
+        ---
+        feature: добавлена пагинацию для конечных точек списков
+        
+        Поддерживает курсорную пагинацию на /users и /orders.
+        ---
+        refactor: переименовано IdentityService в AuthService
+        ---
+        feature!: удалена устаревшая конечная точка /v1/users
+        
+        Конечная точка /v1/users удалена в пользу /v2/users.
+        
+        КРИТИЧНЫЕ ИЗМЕНЕНИЯ: клиенты, использующие /v1/users, должны перейти на /v2/users
+        ---
+
+        СТРОГИЕ ПРАВИЛА:
+        - Выводи ТОЛЬКО сообщение коммита. Никакого Markdown, никаких кавычек, никаких блоков кода, никаких предисловий, никаких объяснений.
+        - Не оборачивай сообщение в кавычки или обратные кавычки.
+        - Не добавляй git трейлеры (Co-Authored-By, Signed-off-by и т.д.).
+        - Не начинай с "Вот", "Конечно" или любых других разговорных фраз.
+        """";
+
     private readonly ILlmProvider _provider;
     private readonly string _systemPrompt;
 
     public CommitMessageGenerator(ILlmProvider provider, string commitTypes, string? customInstructions)
     {
         _provider = provider;
+        if (_provider.Name == "OneС")
+        {
+            string basePrompt = DefaultSystemPromptRus;
 
-        string basePrompt = DefaultSystemPrompt.Replace("{types}", commitTypes);
+            _systemPrompt = string.IsNullOrWhiteSpace(customInstructions)
+                ? basePrompt
+                : $"{basePrompt}\n\nADDITIONAL INSTRUCTIONS:\n{customInstructions}";
+        }
+        else
+        {
+            string basePrompt = DefaultSystemPrompt.Replace("{types}", commitTypes);
 
-        _systemPrompt = string.IsNullOrWhiteSpace(customInstructions)
-            ? basePrompt
-            : $"{basePrompt}\n\nADDITIONAL INSTRUCTIONS:\n{customInstructions}";
+            _systemPrompt = string.IsNullOrWhiteSpace(customInstructions)
+                ? basePrompt
+                : $"{basePrompt}\n\nADDITIONAL INSTRUCTIONS:\n{customInstructions}";
+        }
     }
 
     public async Task<string> GenerateAsync(IGitModule module, CancellationToken cancellationToken)
@@ -69,10 +112,20 @@ internal sealed partial class CommitMessageGenerator
             return "[No staged changes found. Stage some changes before generating a commit message.]";
         }
 
+        string userPrompt = "";
         string branch = module.GetSelectedBranch();
-        string userPrompt = string.IsNullOrWhiteSpace(branch)
-            ? $"Generate a commit message for the following changes:\n\n{diff}"
-            : $"Branch: {branch}\n\nGenerate a commit message for the following changes:\n\n{diff}";
+        if (_provider.Name == "OneС")
+        {
+            userPrompt = string.IsNullOrWhiteSpace(branch)
+                ? $"Сгенерируй сообщение коммита по изменениям:\n\n{diff}"
+                : $"Ветка: {branch}\n\nСгенерируй сообщение коммита по изменениям:\n\n{diff}";
+        }
+        else
+        {
+            userPrompt = string.IsNullOrWhiteSpace(branch)
+                ? $"Generate a commit message for the following changes:\n\n{diff}"
+                : $"Branch: {branch}\n\nGenerate a commit message for the following changes:\n\n{diff}";
+        }
 
         string response = await _provider.GenerateAsync(_systemPrompt, userPrompt, cancellationToken);
         return CleanResponse(response);

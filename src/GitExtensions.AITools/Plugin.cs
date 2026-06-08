@@ -18,7 +18,7 @@ public class AiCommitMessagePlugin : GitPluginBase, IGitPluginForCommit
 {
     private readonly BoolSetting _enabledSetting = new("AI commit message enabled", "Enabled", true);
     private readonly ChoiceSetting _providerSetting = new("AI provider", "Provider", LlmProviderFactory.ProviderNames, LlmProviderFactory.GitHubCopilot);
-    private readonly PasswordSetting _apiKeySetting = new("AI API key", "API Key (optional for GitHub Copilot / Claude Code / OpenCode)", "");
+    private readonly PasswordSetting _apiKeySetting = new("AI API key", "API Key (optional for GitHub Copilot / Claude Code / OpenCode / OneC companion)", "");
     private readonly StringSetting _modelSetting = new("AI model override", "Model override (blank = provider default)", "");
 
     private readonly List<IAiFeature> _features = [];
