@@ -15,7 +15,7 @@ internal abstract class CliProviderBase : ILlmProvider
     protected abstract void ConfigureArguments(ProcessStartInfo startInfo, string systemPrompt, string userPrompt);
     protected abstract string? BuildStdinContent(string systemPrompt, string userPrompt);
 
-    public async Task<string> GenerateAsync(string systemPrompt, string userPrompt, CancellationToken cancellationToken)
+    public async Task<string> GenerateAsync(string systemPrompt, string userPrompt, string workDirGit, CancellationToken cancellationToken)
     {
         string cliPath = DetectCli();
 

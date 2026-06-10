@@ -28,7 +28,7 @@ internal sealed class OpenAiProvider : ILlmProvider
             : ("Ready", true);
     }
 
-    public async Task<string> GenerateAsync(string systemPrompt, string userPrompt, CancellationToken cancellationToken)
+    public async Task<string> GenerateAsync(string systemPrompt, string userPrompt, string workDirGit, CancellationToken cancellationToken)
     {
         using HttpRequestMessage request = new(HttpMethod.Post, ApiUrl);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);

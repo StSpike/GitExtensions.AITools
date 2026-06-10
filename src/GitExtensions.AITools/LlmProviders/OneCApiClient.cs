@@ -23,14 +23,37 @@ namespace GitExtensions.AITools.LlmProviders
         private const string BaseUrl = "https://code.1c.ai";
         private const int MaxActiveSessions = 10;
         private const int SessionTtl = 3600;
+        private const string FileConfigName = "OneC.sessions";
 
         private readonly Dictionary<string, ConversationSession> _sessions;
         private readonly HttpClient _httpClient;
         private readonly JsonSerializerOptions _jsonOptions;
-
-        public OneCApiClient(string oneCAiToken)
+        private string _workDirGit;
+        
+        public OneCApiClient(string oneCAiToken, string workDirGit)
         {
-            _sessions = new Dictionary<string, ConversationSession>();
+            _workDirGit = workDirGit;
+
+            string confDir = Path.Combine(_workDirGit, FileConfigName);
+            if (File.Exists(confDir))
+            {
+                try
+                {
+                    using (FileStream fs = new FileStream(confDir, FileMode.OpenOrCreate))
+                    {
+                        _sessions = JsonSerializer.Deserialize<Dictionary<string, ConversationSession>>(fs);
+                    }
+                }
+                catch
+                {
+                    _sessions = new Dictionary<string, ConversationSession>();
+                }
+            }
+            else
+            {
+                _sessions = new Dictionary<string, ConversationSession>();
+            }
+
             _jsonOptions = new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
@@ -68,7 +91,7 @@ namespace GitExtensions.AITools.LlmProviders
         /// <summary>
         /// Создать новую дискуссию
         /// </summary>
-        public async Task<string> CreateConversation(string programmingLanguage = "")
+        public async Task<ConversationSession> CreateConversation(string programmingLanguage = "")
         {
             try
             {
@@ -110,7 +133,7 @@ namespace GitExtensions.AITools.LlmProviders
 
                 _sessions[conversationResponse.Uuid] = session;
 
-                return conversationResponse.Uuid;
+                return session;
             }
             catch (HttpRequestException ex)
             {
@@ -143,8 +166,7 @@ namespace GitExtensions.AITools.LlmProviders
                 }
 
                 var session = _sessions[conversationId];
-                session.UpdateUsage();
-
+                
                 // Fallback parent_uuid to last known assistant uuid from session
                 if (string.IsNullOrEmpty(parentUuid) && !string.IsNullOrEmpty(session.LastMessageUuid))
                 {
@@ -177,7 +199,7 @@ namespace GitExtensions.AITools.LlmProviders
                 var stream = await response.Content.ReadAsStreamAsync();
                 var fullText = await ParseSSEResponse(stream, session);
 
-                // Обновляем время последнего использования
+                // Обновляем время последнего использования+
                 session.UpdateUsage();
                 
                 return fullText;
@@ -244,7 +266,7 @@ namespace GitExtensions.AITools.LlmProviders
         /// <summary>
         /// Получить существующую сессию или создать новую
         /// </summary>
-        public async Task<string> GetOrCreateSession(bool createNew = false, string programmingLanguage = null)
+        public async Task<ConversationSession> GetOrCreateSession(bool createNew = false, string programmingLanguage = null)
         {
             // Очищаем устаревшие сессии
             await CleanupOldSessions();
@@ -265,7 +287,31 @@ namespace GitExtensions.AITools.LlmProviders
 
             // Возвращаем самую свежую сессию
             var recentSession = _sessions.OrderByDescending(kvp => kvp.Value.LastUsed).First();
-            return recentSession.Key;
+
+            await SaveSessions();
+
+            return _sessions[recentSession.Key];
+        }
+
+        /// <summary>
+        /// Сохранить сессии в файл
+        /// </summary>
+        public async Task SaveSessions()
+        {
+            string confDir = Path.Combine(_workDirGit, FileConfigName);
+            var options = new JsonSerializerOptions
+            {
+                WriteIndented = true
+            };
+
+            FileMode fileMode = File.Exists(confDir) ? FileMode.Truncate : FileMode.OpenOrCreate;
+
+            using (FileStream fs = new FileStream(confDir, fileMode))
+            {
+                JsonSerializer.Serialize<Dictionary<string, ConversationSession>>(fs, _sessions, options);
+            }
+
+            await Task.CompletedTask;
         }
 
         /// <summary>

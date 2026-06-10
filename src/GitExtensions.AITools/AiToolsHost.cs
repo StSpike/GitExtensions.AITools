@@ -30,6 +30,7 @@ internal sealed class AiToolsHost
         if (string.IsNullOrWhiteSpace(apiKey)
             && provider != LlmProviderFactory.GitHubCopilot
             && provider != LlmProviderFactory.ClaudeCode
+            && provider != LlmProviderFactory.ÑompanionOneÑ
             && provider != LlmProviderFactory.OpenCode)
         {
             configError = "No API key configured. Open Plugins > AI Tools to configure.";

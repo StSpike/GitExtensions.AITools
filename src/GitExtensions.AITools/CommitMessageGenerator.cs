@@ -119,15 +119,17 @@ internal sealed partial class CommitMessageGenerator
             userPrompt = string.IsNullOrWhiteSpace(branch)
                 ? $"Сгенерируй сообщение коммита по изменениям:\n\n{diff}"
                 : $"Ветка: {branch}\n\nСгенерируй сообщение коммита по изменениям:\n\n{diff}";
+            
         }
         else
         {
             userPrompt = string.IsNullOrWhiteSpace(branch)
                 ? $"Generate a commit message for the following changes:\n\n{diff}"
                 : $"Branch: {branch}\n\nGenerate a commit message for the following changes:\n\n{diff}";
+            
         }
+        string response = await _provider.GenerateAsync(_systemPrompt, userPrompt, module.WorkingDirGitDir, cancellationToken);
 
-        string response = await _provider.GenerateAsync(_systemPrompt, userPrompt, cancellationToken);
         return CleanResponse(response);
     }
 

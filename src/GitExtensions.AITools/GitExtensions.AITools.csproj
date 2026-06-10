@@ -90,9 +90,7 @@
       <_GEVersion>%(_GEAssemblyInfo.Version)</_GEVersion>
       <_GEMajor>$(_GEVersion.Split('.')[0])</_GEMajor>
     </PropertyGroup>
-    <Error
-      Condition="'$(_GEMajor)' != '$(GitExtensionsExpectedMajorVersion)'"
-      Text="Git Extensions version mismatch: found v$(_GEVersion) but plugin targets major version $(GitExtensionsExpectedMajorVersion). Update GitExtensionsReferenceVersion in .csproj.user or bump GitExtensionsExpectedMajorVersion." />
+    <Error Condition="'$(_GEMajor)' != '$(GitExtensionsExpectedMajorVersion)'" Text="Git Extensions version mismatch: found v$(_GEVersion) but plugin targets major version $(GitExtensionsExpectedMajorVersion). Update GitExtensionsReferenceVersion in .csproj.user or bump GitExtensionsExpectedMajorVersion." />
     <Message Importance="normal" Text="Git Extensions version check passed: v$(_GEVersion)" />
   </Target>
 
@@ -117,6 +115,8 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>GitExtensions;AI;commit-message;LLM;plugin</PackageTags>
     <PackageReleaseNotes Condition="'$(PackageReleaseNotes)' == ''">See https://github.com/JBTremblay/gitextensions.aitools/releases</PackageReleaseNotes>
+    <AssemblyVersion>6.0.1.2</AssemblyVersion>
+    <FileVersion>6.0.1.2</FileVersion>
   </PropertyGroup>
   <Target Name="SetPackageProperties" BeforeTargets="GenerateNuspec">
     <PropertyGroup>
