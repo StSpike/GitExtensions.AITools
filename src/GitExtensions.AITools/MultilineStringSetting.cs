@@ -4,19 +4,17 @@ namespace GitExtensions.AITools;
 
 internal sealed class MultilineStringSetting : ISetting
 {
-    public MultilineStringSetting(string name, string caption, string defaultValue, bool useDefaultValueIfBlank = false)
+    public MultilineStringSetting(string name, string caption, string defaultValue)
     {
         Name = name;
         Caption = caption;
         DefaultValue = defaultValue;
-        UseDefaultValueIfBlank = useDefaultValueIfBlank;
     }
 
     public string Name { get; }
     public string Caption { get; }
     public string DefaultValue { get; }
-    public bool UseDefaultValueIfBlank { get; }
-
+    
     public ISettingControlBinding CreateControlBinding()
     {
         return new MultilineTextBoxBinding(this);
@@ -57,7 +55,7 @@ internal sealed class MultilineStringSetting : ISetting
                 ? Setting.ValueOrDefault(settings)
                 : Setting[settings];
 
-            if (settingVal is null && Setting.UseDefaultValueIfBlank)
+            if (settingVal is null)
             {
                 settingVal = Setting.ValueOrDefault(settings);
             }

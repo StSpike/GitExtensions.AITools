@@ -15,7 +15,7 @@ internal sealed class CommitMessageFeature : IAiFeature, ITranslate
 
     private readonly AiToolsHost _host;
     private readonly BoolSetting _autoFillSetting = new("AI commit message auto-fill", "Auto-fill on stage/unstage", true);
-    private readonly StringSetting _commitTypesSetting = new("AI commit types", "Commit types (comma-separated)", CommitMessageGenerator.DefaultCommitTypes, true);
+    private readonly StringSetting _commitTypesSetting = new("AI commit types", CommitMessageGenerator.DefaultCommitTypes);
     private readonly MultilineStringSetting _customInstructionsSetting = new("AI custom instructions", "Custom instructions (appended to built-in prompt)", "");
 
     private readonly TranslationString _triggerText = new("AI: Generate commit message...");
@@ -124,11 +124,11 @@ internal sealed class CommitMessageFeature : IAiFeature, ITranslate
 
         if (_configError is not null)
         {
-            e.GitUICommands.AddCommitTemplate(TemplateKey, () => _configError, _host.Icon);
+            e.GitUICommands.AddCommitTemplate(TemplateKey, () => _configError, _host.Icon, false);
         }
         else
         {
-            e.GitUICommands.AddCommitTemplate(TemplateKey, () => GetGeneratedMessage(), _host.Icon);
+            e.GitUICommands.AddCommitTemplate(TemplateKey, () => GetGeneratedMessage(), _host.Icon, false);
         }
     }
 
