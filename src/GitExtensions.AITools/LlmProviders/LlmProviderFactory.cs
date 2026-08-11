@@ -7,9 +7,9 @@ internal static class LlmProviderFactory
     public const string OpenCode = "OpenCode";
     public const string Anthropic = "Anthropic API (Claude)";
     public const string OpenAI = "OpenAI API (ChatGPT)";
-    public const string ÑompanionOneÑ = "1C companion"; 
+    public const string CompanionOneC = "1C companion"; 
 
-    public static readonly string[] ProviderNames = [GitHubCopilot, ClaudeCode, OpenCode, Anthropic, OpenAI, ÑompanionOneÑ];
+    public static readonly string[] ProviderNames = [GitHubCopilot, ClaudeCode, OpenCode, Anthropic, OpenAI, CompanionOneC];
 
     public static ILlmProvider Create(string providerName, string apiKey, string? model)
     {
@@ -20,7 +20,7 @@ internal static class LlmProviderFactory
             GitHubCopilot => new GitHubCopilotProvider(model),
             ClaudeCode => new ClaudeCodeProvider(model),
             OpenCode => new OpenCodeProvider(model),
-            ÑompanionOneÑ => new OneÑProvider(apiKey),
+            CompanionOneC => new OneCProvider(apiKey),
             _ => throw new ArgumentException($"Unknown LLM provider: {providerName}")
         };
     }

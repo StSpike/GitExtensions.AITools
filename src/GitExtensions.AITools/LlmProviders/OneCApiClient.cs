@@ -201,6 +201,8 @@ namespace GitExtensions.AITools.LlmProviders
 
                 // Обновляем время последнего использования+
                 session.UpdateUsage();
+
+                await SaveSessions();
                 
                 return fullText;
             }

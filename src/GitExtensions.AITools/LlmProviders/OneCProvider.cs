@@ -6,7 +6,7 @@ using GitExtensions.AITools.LlmProviders.OneCModels;
 
 namespace GitExtensions.AITools.LlmProviders
 {
-    internal sealed class OneСProvider : ILlmProvider
+    internal sealed class OneCProvider : ILlmProvider
     {
         private static readonly HttpClient HttpClient = new() { Timeout = TimeSpan.FromSeconds(30) };
         
@@ -16,7 +16,7 @@ namespace GitExtensions.AITools.LlmProviders
 
         public string Name => "OneС";
 
-        public OneСProvider(string apiKey)
+        public OneCProvider(string apiKey)
         {
             _apiKey = apiKey;
         }
